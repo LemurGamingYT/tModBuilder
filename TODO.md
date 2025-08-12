@@ -1,0 +1,68 @@
+- TODO
+ All things planned to be added
+
+- [ ] Gun
+- [ ] Materials
+    - [ ] Bar
+    - [ ] Ore
+- [ ] Energy sword (terra blade, nights edge, excalibur, etc)
+- [ ] Tile
+- [ ] Arrow
+- [ ] Bullet
+- [ ] Relic
+- [ ] Trophy
+- [ ] Summon staff
+- [ ] Whip
+- [ ] Treasure bag
+- [ ] Boss Summon
+- [ ] Tool
+    - [ ] Pickaxe
+    - [ ] Axe
+    - [ ] Hammer
+- [ ] Hook
+- [ ] Torch
+- [ ] Campfire
+- [ ] Yoyo
+- [ ] Staff
+- [ ] Banner
+- [ ] Beam
+- [ ] Accessories
+    - [ ] Wings
+    - [ ] Combat
+    - [ ] Mobility
+- [ ] Armour
+    - [ ] Head
+    - [ ] Chestplate
+    - [ ] Boots
+    - [ ] Set bonus
+- [ ] Water style
+- [ ] World Generation
+    - [ ] Generation shapes
+    - [ ] Generation conditions
+    - [ ] Generation positions
+        - [ ] Range
+        - [ ] North
+        - [ ] East
+        - [ ] South
+        - [ ] West
+        - [ ] Center
+        - [ ] Snow
+        - [ ] Desert
+        - [ ] Dungeon
+        - [ ] Ocean (Picks random ocean)
+            - [ ] Left
+            - [ ] Right
+        - [ ] Underworld
+            - [ ] Center
+            - [ ] Left
+            - [ ] Right
+        - [ ] Spawn
+        - [ ] Granite
+        - [ ] Marble
+        - [ ] Mushroom
+- [ ] Boss attack manager
+    - [ ] Dash attack
+    - [ ] Spawn Projectiles
+    - [ ] Burst attack
+- [ ] Town NPC
+- [ ] NPC
