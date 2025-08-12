@@ -150,11 +150,16 @@ version = {project.config.version}
         en_US.write_text(localization.code)
 
         content_path = content_dir / f'{content.get_internal_name()}.cs'
-        content_path.write_text(f"""namespace {mod_name}.Content
+        content_path.write_text(f"""using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
+
+namespace {mod_name}.Content
 {{
 {build_ctx.class_code}
 }}
 """)
 
     run(f'dotnet msbuild {csproj.as_posix()} -restore')
-    run(f'dotnet msbuild {csproj.as_posix()} -t:build')
+    res = run(f'dotnet msbuild {csproj.as_posix()} -t:build')
+    print(res.returncode)

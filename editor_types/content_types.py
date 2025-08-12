@@ -39,7 +39,7 @@ class Item(ContentType):
     def get_name(self):
         return self.name.value
     
-    def build_localization(self):
+    def build_localization(self, _):
         return Localization(
             f'Items.{self.get_internal_name()}',
             {
@@ -52,13 +52,14 @@ class Item(ContentType):
         width, height = self.texture.image.size
 
         copyfile(self.texture.path, ctx.build_dir / self.texture.path.name)
+        ctx.class_bases.append('ModItem')
         ctx.class_methods.append(Method(
-            'SetDefaults', f"""Item.height = {height};
+            'SetDefaults', [], 'void', f"""Item.height = {height};
 Item.width = {width};
 
 Item.rare = {self.rarity};
 Item.value = {self.value};
-""", [], 'void'
+"""
         ))
 
 @dataclass
@@ -70,7 +71,7 @@ class Material(Item):
         super().build(ctx)
 
         ctx.class_methods.append(Method(
-            'SetStaticDefaults', f'Item.ResearchUnlockCount = {self.research_amount}', [], 'void'
+            'SetStaticDefaults', [], 'void', f'Item.ResearchUnlockCount = {self.research_amount};'
         ))
 
         set_defaults = ctx.find_method('SetDefaults')
