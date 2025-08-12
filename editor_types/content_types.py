@@ -1,8 +1,9 @@
 from editor_types.data_types import Int, Float, String, Bool, Image, Rarity, CoinValue
+from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from shutil import copyfile
-from pathlib import Path
+
+from editor.builder import BuildContext, Localization, Method
 
 
 @dataclass
@@ -17,150 +18,91 @@ Defaults to removing all spaces from the result of `.get_name()`."""
 
         return self.get_name().replace(' ', '')
     
-    @staticmethod
     @abstractmethod
-    def default():
-        """The default value for this content type."""
-    
-    @abstractmethod
-    def build(self, build_folder: Path):
-        """Build the content type into C# code.
-Should return a string of what should be written to the .cs file."""
+    def build(self, ctx: BuildContext):
+        """Build the content type into C# code."""
 
     @abstractmethod
-    def build_localization(self):
-        """Build the localization code for this content type.
-Should return a string of what should be written to the .hjson localization file."""
+    def build_localization(self, ctx: BuildContext) -> Localization:
+        """Build the localization code for this content type."""
 
 
 @dataclass
 class Item(ContentType):
-    name: String
-    tooltip: String
+    name: String = field(default_factory=String)
+    tooltip: String = field(default_factory=String)
 
-    value: CoinValue
-    texture: Image
-    rarity: Rarity
+    value: CoinValue = field(default_factory=CoinValue)
+    texture: Image = field(default_factory=Image)
+    rarity: Rarity = field(default_factory=Rarity)
 
     def get_name(self):
         return self.name.value
     
-    @staticmethod
-    def default():
-        return Item(String(), String(), CoinValue(), Image(), Rarity())
-    
     def build_localization(self):
-        return f"""Items.{self.get_internal_name()}: {{
-    DisplayName: {self.get_name()}
-    Tooltip: {self.tooltip}
-}}"""
+        return Localization(
+            f'Items.{self.get_internal_name()}',
+            {
+                'DisplayName': self.get_name(),
+                'Tooltip': self.tooltip
+            }
+        )
     
-    def build(self, build_folder):
+    def build(self, ctx: BuildContext):
         width, height = self.texture.image.size
 
-        copyfile(self.texture.path, build_folder / self.texture.path.name)
-        return f"""using Terraria;
-using Terraria.ID;
-using Terraria.ModLoader;
+        copyfile(self.texture.path, ctx.build_dir / self.texture.path.name)
+        ctx.class_methods.append(Method(
+            'SetDefaults', f"""Item.height = {height};
+Item.width = {width};
 
-public class {self.get_internal_name()} : ModItem
-{{
-    public override void SetDefaults()
-    {{
-        Item.height = {height};
-        Item.width = {width};
-
-        Item.rare = {self.rarity};
-        Item.value = {self.value};
-    }}
-}}
-"""
+Item.rare = {self.rarity};
+Item.value = {self.value};
+""", [], 'void'
+        ))
 
 @dataclass
 class Material(Item):
-    max_stack: Int
-    research_amount: Int
-
-    @staticmethod
-    def default():
-        return Material(
-            String(), String(), CoinValue(), Image(), Rarity(), Int(9999), Int(99)
-        )
+    max_stack: Int = field(default_factory=lambda: Int(9999))
+    research_amount: Int = field(default_factory=lambda: Int(99))
     
-    def build(self, build_folder):
-        super().build(build_folder)
-        width, height = self.texture.image.size
+    def build(self, ctx: BuildContext):
+        super().build(ctx)
 
-        return f"""using Terraria.ModLoader;
-using Terraria.ID;
-using Terraria;
+        ctx.class_methods.append(Method(
+            'SetStaticDefaults', f'Item.ResearchUnlockCount = {self.research_amount}', [], 'void'
+        ))
 
-public class {self.get_internal_name()} : ModItem
-{{
-    public override void SetStaticDefaults()
-    {{
-        Item.ResearchUnlockCount = {self.research_amount};
-    }}
+        set_defaults = ctx.find_method('SetDefaults')
+        assert set_defaults is not None
 
-    public override void SetDefaults()
-    {{
-        Item.maxStack = {self.max_stack};
-        Item.height = {height};
-        Item.width = {width};
-
-        Item.material = true;
-
-        Item.rare = {self.rarity};
-        Item.value = {self.value};
-    }}
-}}
-"""
+        set_defaults.body_code += f'\nItem.maxStack = {self.max_stack};'
 
 @dataclass
 class Sword(Item):
-    damage: Int
-    knockback: Float
-    crit_chance: Int
-    auto_reuse: Bool
+    damage: Int = field(default_factory=Int)
+    knockback: Float = field(default_factory=Float)
+    crit_chance: Int = field(default_factory=Int)
+    auto_reuse: Bool = field(default_factory=lambda: Bool(True))
+    use_time: Int = field(default_factory=lambda: Int(20))
+    use_animation: Int = field(default_factory=lambda: Int(20))
+    use_turn: Bool = field(default_factory=lambda: Bool(True))
 
-    @staticmethod
-    def default():
-        return Sword(
-            String('Unnamed Sword'), String(), CoinValue(), Image(), Rarity(), Int(), Float(),
-            Int(), Bool()
-        )
+    def build(self, ctx: BuildContext):
+        super().build(ctx)
 
-    def build(self, build_folder):
-        super().build(build_folder)
-        width, height = self.texture.image.size
+        set_defaults = ctx.find_method('SetDefaults')
+        assert set_defaults is not None
 
-        return f"""using Terraria.ModLoader;
-using Terraria.ID;
-using Terraria;
+        set_defaults.body_code += f"""
+Item.autoReuse = {self.auto_reuse};
+Item.useTime = {self.use_time};
+Item.useAnimation = {self.use_animation};
+Item.useTurn = {self.use_turn};
+Item.DamageType = DamageClass.Melee;
+Item.useStyle = ItemUseStyleID.Swing;
 
-public class {self.get_internal_name()} : ModItem
-{{
-    public override void SetDefaults()
-    {{
-        Item.height = {height};
-        Item.width = {width};
-
-        Item.damage = {self.damage};
-        Item.knockBack = {self.knockback};
-        Item.crit = {self.crit_chance};
-
-        Item.autoReuse = {self.auto_reuse};
-
-        Item.rare = {self.rarity};
-
-        Item.useTime = 20;
-        Item.useTurn = true;
-        Item.useAnimation = 20;
-        Item.DamageType = DamageClass.Melee;
-        Item.useStyle = ItemUseStyleID.Swing;
-        Item.value = {self.value};
-    }}
-}}
+Item.SetWeaponValues({self.damage}, {self.knockback}, {self.crit_chance});
 """
 
 

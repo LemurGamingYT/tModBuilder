@@ -164,7 +164,7 @@ class Editor(CTkPage):
         self.properties_frame.pack(fill=BOTH, expand=True, side=RIGHT)
     
     def create_content(self, content_type: type[ContentType]):
-        content = content_type.default()
+        content = content_type()
         self.project.content.append(content)
         self.content_bar.load_content()
         self.properties_frame.load_content_properties(len(self.project.content) - 1, content)

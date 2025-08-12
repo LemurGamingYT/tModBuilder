@@ -1,8 +1,58 @@
+from dataclasses import dataclass, field
 from shutil import copyfile
 from subprocess import run
 from pathlib import Path
 
 from project import Project
+
+
+@dataclass
+class Method:
+    name: str
+    params: list[str]
+    return_type: str
+    body_code: str
+
+    @property
+    def code(self):
+        return f"""public override {self.return_type} {self.name}({', '.join(self.params)}) {{
+    {self.body_code}
+}}
+"""
+
+@dataclass
+class Localization:
+    name: str
+    keys: dict[str, str] = field(default_factory=dict)
+
+    @property
+    def code(self):
+        return f"""{self.name}: {{
+    {', '.join(f'    {key}: {value}' for key, value in self.keys.items())}
+}}
+"""
+
+@dataclass
+class BuildContext:
+    mod_name: str
+    build_dir: Path
+    project: Project
+    class_name: str
+    class_bases: list[str]
+    class_methods: list[Method]
+
+    @property
+    def class_code(self):
+        return f"""public class {self.class_name} : {', '.join(self.class_bases)}
+{{
+    {'\n'.join(method.code for method in self.class_methods)}
+}}
+"""
+    
+    def find_method(self, name: str):
+        for method in self.class_methods:
+            if method.name == name:
+                return method
 
 
 assets_folder = Path.cwd() / 'assets'
@@ -94,16 +144,15 @@ version = {project.config.version}
     content_dir = build_dir / 'Content'
     content_dir.mkdir(exist_ok=True)
     for content in project.content:
-        content_code = content.build(content_dir)
-        localization_code = content.build_localization()
-        en_US.write_text(f"""{en_US.read_text('utf-8')}
-{localization_code}
-""")
+        build_ctx = BuildContext(mod_name, build_dir, project, content.get_internal_name(), [], [])
+        content.build(build_ctx)
+        localization = content.build_localization(build_ctx)
+        en_US.write_text(localization.code)
 
         content_path = content_dir / f'{content.get_internal_name()}.cs'
         content_path.write_text(f"""namespace {mod_name}.Content
 {{
-{content_code}
+{build_ctx.class_code}
 }}
 """)
 

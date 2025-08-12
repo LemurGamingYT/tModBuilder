@@ -3,8 +3,6 @@ from dataclasses import dataclass, field
 from pickle import loads, dumps
 from pathlib import Path
 
-from editor_types.content_types import ContentType
-
 
 @dataclass
 class ModConfig:
@@ -23,7 +21,7 @@ class ModConfig:
 class Project:
     name: str
     path: Path
-    content: list[ContentType] = field(default_factory=list)
+    content: list = field(default_factory=list)
     config: ModConfig = field(default_factory=lambda: ModConfig())
 
     @property
