@@ -1,5 +1,5 @@
 from tkinter import TOP, BOTTOM, X, BOTH, CENTER
-from tkinter.messagebox import showerror
+from tkinter.messagebox import showerror, ERROR
 from tkinter import StringVar
 from json import loads, dumps
 from pathlib import Path
@@ -21,6 +21,7 @@ class ProjectManager(CTkPage):
         self.root = root
 
         root.title('TModBuilder - Project Manager')
+        root.geometry('800x600')
 
         self.top_bar = CTkFrame(self, fg_color='#084300', height=50)
         self.top_bar.pack(side=TOP, fill=X)
@@ -46,8 +47,11 @@ class ProjectManager(CTkPage):
 
         name = name_var.get()
         path = Path(path_var.get())
+        if name == '' or path == '':
+            return
+        
         if not path.exists():
-            showerror('Error', 'Path does not exist.')
+            showerror('Error', 'Path does not exist.', icon=ERROR)
             return
         
         project = Project(name, path)
@@ -80,7 +84,7 @@ class ProjectManager(CTkPage):
             project_paths = [Path(path) for path in project_list]
             for path in project_paths:
                 if not path.exists():
-                    showerror('Error', f'Path does not exist: {path.as_posix()}')
+                    showerror('Error', f'Path does not exist: {path.as_posix()}', icon=ERROR)
                     continue
 
                 self.projects.append(Project.load(path))
