@@ -1,12 +1,17 @@
 from tkinter.messagebox import showerror, ERROR
 from tkinter import BOTH, X, RIGHT, LEFT
-from dataclasses import fields
-from typing import cast, Any
+from dataclasses import dataclass, fields
+from typing import cast
 
 from customtkinter import CTkBaseClass, CTkFrame, CTkButton, CTkLabel, CTkScrollableFrame
 
 from editor_types.content_types import ContentType, CONTENT_TYPES
 
+
+@dataclass
+class PropertyWidgets:
+    widgets: list[CTkBaseClass] | CTkBaseClass
+    field_name: str
 
 class PropertiesFrame(CTkFrame):
     def __init__(self, page):
@@ -23,7 +28,7 @@ class PropertiesFrame(CTkFrame):
         for child in self.winfo_children():
             child.destroy()
     
-    def save(self, widgets: list[tuple[list[CTkBaseClass] | CTkBaseClass, str]]):
+    def save(self, widgets: list[PropertyWidgets]):
         if self.current_type is None or self.current_idx is None:
             showerror('Error', 'No content selected.', icon=ERROR)
             return
@@ -56,7 +61,7 @@ class PropertiesFrame(CTkFrame):
         actions_frame = CTkFrame(properties, fg_color='transparent')
         actions_frame.pack(fill=X, pady=10)
 
-        content_widgets: list[tuple[list[Any] | Any, str]] = []
+        content_widgets: list[PropertyWidgets] = []
 
         save_button = CTkButton(
             actions_frame, text='Save', font=('Andy', 30), width=20, height=30,
@@ -73,7 +78,7 @@ class PropertiesFrame(CTkFrame):
             label.pack(side=LEFT)
 
             value = getattr(content_type, field.name)
-            content_widgets.append((value.display(properties), field.name))
+            content_widgets.append(PropertyWidgets(value.display(properties), field.name))
     
     def load_content_picker(self):
         if self.current_type is not None and self.current_idx is not None:
