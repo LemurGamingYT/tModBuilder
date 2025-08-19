@@ -51,7 +51,7 @@ class Item(ContentType):
     def build(self, ctx: BuildContext):
         width, height = self.texture.image.size
 
-        copyfile(self.texture.path, ctx.build_dir / self.texture.path.name)
+        copyfile(self.texture.path, ctx.build_dir / f'{self.get_internal_name()}.png')
         ctx.class_bases.append('ModItem')
         ctx.class_methods.append(Method(
             'SetDefaults', [], 'void', f"""Item.height = {height};

@@ -1,4 +1,4 @@
-from tkinter.messagebox import showerror, showinfo
+from tkinter.messagebox import showerror, showinfo, INFO, ERROR
 from tkinter import TOP, LEFT, RIGHT, X, Y, BOTH
 from dataclasses import fields
 from typing import cast, Any
@@ -63,7 +63,7 @@ class PropertiesFrame(CTkFrame):
     
     def save(self, widgets: list[tuple[list[CTkBaseClass] | CTkBaseClass, str]]):
         if self.current_type is None or self.current_idx is None:
-            showerror('Error', 'No content selected.')
+            showerror('Error', 'No content selected.', icon=ERROR)
             return
 
         kwargs = {}
@@ -171,8 +171,14 @@ class Editor(CTkPage):
     
     def save(self):
         self.project.save()
-        showinfo('Saved', f'Your mod has been saved to {self.project.file.as_posix()}')
+        showinfo('Saved', f'Your mod has been saved to {self.project.file.as_posix()}', icon=INFO)
     
     def build(self):
-        build_project(self.project)
-        showinfo('Built', f'Your mod has been built to {(self.project.path / "build").as_posix()}')
+        success = build_project(self.project)
+        if not success:
+            showerror('Error', 'Your mod could not be built.', icon=ERROR)
+        else:
+            showinfo(
+                'Built', f'Your mod has been built to {(self.project.path / "build").as_posix()}',
+                icon=INFO
+            )

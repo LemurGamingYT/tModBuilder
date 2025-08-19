@@ -1,9 +1,9 @@
 from tkinter.filedialog import askopenfilename
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 from tkinter import X
+from os import getcwd
 
 from customtkinter import CTkFrame, CTkEntry, CTkImage, CTkLabel, CTkButton, CTkComboBox, CTkCheckBox
 from PIL.Image import open as imopen
@@ -123,13 +123,13 @@ class Bool(DataType):
 
 @dataclass
 class Image(DataType):
-    path: Path = Path.cwd() / 'assets' / 'placeholder_image.png'
+    path: str = f'{getcwd()}/assets/placeholder_image.png'
 
     def __post_init__(self):
         self.image = imopen(self.path)
     
     def __str__(self):
-        return self.path.as_posix()
+        return self.path
 
     def display(self, parent):
         def browse():
@@ -137,8 +137,8 @@ class Image(DataType):
                 ('Image Files', '*.png'), ('All Files', '*.*')
             ], title='Browse Image')
             if path:
-                self.path = Path(path)
-                self.image = imopen(self.path)
+                self.path = path
+                self.image = imopen(path)
                 img_label.path = self.path
                 img_label.configure(image=CTkImage(self.image, size=self.image.size))
 
@@ -195,3 +195,5 @@ class CoinValue(DataType):
     def read(self, widget):
         platinum, gold, silver, copper = widget
         return CoinValue(platinum.get(), gold.get(), silver.get(), copper.get())
+
+DATA_TYPES = [Int, Float, String, Bool, Image, Rarity, CoinValue]

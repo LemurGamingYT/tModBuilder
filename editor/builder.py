@@ -162,4 +162,8 @@ namespace {mod_name}.Content
 
     run(f'dotnet msbuild {csproj.as_posix()} -restore')
     res = run(f'dotnet msbuild {csproj.as_posix()} -t:build')
-    print(res.returncode)
+    if res.returncode != 0:
+        print('Build failed')
+        return False
+    
+    return True
