@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from shutil import copyfile
 
-from editor.builder import BuildContext, Localization, Method
+from pages.editor.builder import BuildContext, Localization, Method
 
 
 @dataclass

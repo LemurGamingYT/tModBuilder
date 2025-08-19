@@ -2,10 +2,10 @@ from tkinter.messagebox import showerror, ERROR
 from pathlib import Path
 from sys import argv
 
-from project_manager import ProjectManager
+from pages.project_manager import ProjectManager
+from pages.editor import Editor
 from ctk_ext import CTkRoot
 from project import Project
-from editor import Editor
 
 
 def main():

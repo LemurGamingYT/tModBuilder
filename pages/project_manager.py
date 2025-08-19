@@ -8,8 +8,8 @@ from pathlib import Path
 from customtkinter import CTkFrame, CTkButton, CTkLabel, CTkEntry, CTkScrollableFrame, CTkToplevel
 
 from ctk_ext import CTkRoot, CTkPage
+from pages.editor import Editor
 from project import Project
-from editor import Editor
 
 
 projects_file = Path('projects.json')
