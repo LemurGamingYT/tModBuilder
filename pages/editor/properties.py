@@ -34,10 +34,10 @@ class PropertiesFrame(CTkFrame):
             return
 
         kwargs = {}
-        for widget, field_name in widgets:
-            value = getattr(self.current_type, field_name)
-            content_value = value.read(widget)
-            kwargs[field_name] = content_value
+        for property in widgets:
+            value = getattr(self.current_type, property.field_name)
+            content_value = value.read(property.widgets)
+            kwargs[property.field_name] = content_value
         
         new_content_type = self.current_type.__class__(**kwargs)
         self.page.project.content[self.current_idx] = new_content_type
