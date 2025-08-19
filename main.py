@@ -10,6 +10,7 @@ from project import Project
 
 def main():
     root = CTkRoot()
+    root.state('zoomed')
 
     if len(argv) == 1:
         pm = ProjectManager(root)

@@ -159,11 +159,14 @@ namespace {mod_name}.Content
 {build_ctx.class_code}
 }}
 """)
+    
+    tmod_targets = Path('C:/Program Files (x86)/Steam/steamapps/common/tModLoader/tMLMod.targets')
+    if not tmod_targets.exists():
+        return False
 
     run(f'dotnet msbuild {csproj.as_posix()} -restore')
     res = run(f'dotnet msbuild {csproj.as_posix()} -t:build')
     if res.returncode != 0:
-        print('Build failed')
         return False
     
     return True
