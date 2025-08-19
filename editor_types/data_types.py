@@ -1,12 +1,14 @@
 from tkinter.filedialog import askopenfilename
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from tkinter import X, BOTH
 from typing import Any
-from tkinter import X
 from os import getcwd
 
-from customtkinter import CTkFrame, CTkEntry, CTkImage, CTkLabel, CTkButton, CTkComboBox, CTkCheckBox
 from PIL.Image import open as imopen
+from customtkinter import (
+    CTkFrame, CTkEntry, CTkImage, CTkLabel, CTkButton, CTkCheckBox, CTkToplevel, CTkScrollableFrame
+)
 
 
 class DataType(ABC):
@@ -36,22 +38,32 @@ Used by `Int.display`, `Float.display` and `String.display`."""
         entry.pack(fill=X)
         return entry
     
-    def display_dropdown(self, parent, values: list[Any], default: Any = None):
-        """Utility method to display a dropdown list/menu with the given values, an optional
-default value can be set, otherwise, default to the first in the values list."""
+    def picker_window(self, parent, title: str, choices: list[str]):
+        window = CTkToplevel(parent)
+        window.title(title)
+        window.geometry('400x300')
+        picked = ''
+        def set_picked(choice: str):
+            nonlocal picked
+            picked = choice
+            window.destroy()
 
-        widget = CTkComboBox(
-            parent, values=values, fg_color='#073B00', dropdown_fg_color='#095000',
-            button_color='#095000', button_hover_color='#0B5C00',
-            dropdown_font=('Andy', 20), font=('Andy', 20), border_width=0,
-            dropdown_hover_color='#0C6B00', border_color='#0C6500'
+        list_frame = CTkScrollableFrame(
+            window, fg_color='#063000', scrollbar_button_color='#095000',
+            scrollbar_button_hover_color='#0B5C00', border_color='#0C6500',
+            label_text='Select', label_font=('Andy', 20, 'bold'), label_anchor='n'
         )
 
-        if default is not None:
-            widget.set(default)
+        for choice in choices:
+            CTkButton(
+                list_frame, text=choice, fg_color='#073B00', border_color='#0B5C00',
+                hover_color='#0C6500', font=('Andy', 20), command=lambda c=choice: set_picked(c)
+            ).pack(fill=X, padx=5, pady=5)
         
-        widget.pack(fill=X)
-        return widget
+        list_frame.pack(fill=BOTH, expand=True)
+        window.grab_set()
+        window.wait_window()
+        return picked
 
 
 @dataclass
@@ -159,21 +171,77 @@ class Image(DataType):
         path = widget.path
         return Image(path)
 
+rarity_colors = {
+    'Gray': '#606060',
+    'White': '#FFFFFF',
+    'Blue': '#0000FF',
+    'Green': '#00FF00',
+    'Orange': '#FFA500',
+    'Light Red': '#FF0000',
+    'Pink': '#FF00FF',
+    'Light Purple': '#FF00FF',
+    'Lime': '#00FF00',
+    'Yellow': '#FFFF00',
+    'Cyan': '#00FFFF',
+    'Red': '#FF0000',
+    'Purple': '#800080',
+    'Quest': '#FFaa00'
+}
+
+rarities = [
+    'Gray', 'White', 'Blue', 'Green', 'Orange', 'Light Red', 'Pink', 'Light Purple', 'Lime', 'Yellow',
+    'Cyan', 'Red', 'Purple', 'Expert', 'Master', 'Quest'
+]
+
 @dataclass
 class Rarity(DataType):
     rare: str = 'White'
+
+    @property
+    def color(self):
+        return rarity_colors[self.rare]
+
+    def __post_init__(self):
+        self.MIN_RAINBOW_INDEX = 2
+        self.rainbow_index = self.MIN_RAINBOW_INDEX
+        self.RAINBOW_SPEED_MILLISECONDS = 250
 
     def __str__(self):
         return f'ItemRarityID.{self.rare.replace(" ", "")}'
 
     def display(self, parent):
-        return self.display_dropdown(parent, [
-            'Gray', 'White', 'Blue', 'Green', 'Orange', 'Light Red', 'Pink', 'Light Purple',
-            'Lime', 'Yellow', 'Cyan', 'Red', 'Purple', 'Expert', 'Master', 'Quest'
-        ], self.rare)
+        def rainbow_btn():
+            if self.rainbow_index >= len(rarity_colors):
+                self.rainbow_index = self.MIN_RAINBOW_INDEX
+
+            rainbow_color = rarity_colors[list(rarity_colors.keys())[self.rainbow_index]]
+            btn.configure(fg_color=rainbow_color, text=self.rare)
+            self.rainbow_index += 1
+
+            if self.rare not in ('Expert', 'Master'):
+                update_button()
+
+            btn.after(self.RAINBOW_SPEED_MILLISECONDS, rainbow_btn)
+
+        def update_button():
+            if self.rare in ('Expert', 'Master'):
+                rainbow_btn()
+            else:
+                btn.configure(fg_color=self.color, text=self.rare)
+
+        def window():
+            choice = self.picker_window(btn, 'Rarities', rarities)
+            if choice != '':
+                self.rare = choice
+                update_button()
+
+        btn = CTkButton(parent, font=('Andy', 20), corner_radius=10, command=window)
+        btn.pack(fill=X, padx=5)
+        update_button()
+        return btn
     
     def read(self, widget):
-        return Rarity(widget.get())
+        return Rarity(widget.cget('text'))
 
 @dataclass
 class CoinValue(DataType):

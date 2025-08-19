@@ -19,22 +19,28 @@ class PropertiesFrame(CTkFrame):
 
         self.current_type = cast(ContentType, None)
         self.current_idx = cast(int, None)
+        self.current_widgets = []
         self.page = page
+    
+    @property
+    def is_editting(self):
+        return self.current_type is not None and self.current_idx is not None
     
     def reset(self):
         self.current_type = None
         self.current_idx = None
+        self.current_widgets.clear()
 
         for child in self.winfo_children():
             child.destroy()
     
-    def save(self, widgets: list[PropertyWidgets]):
-        if self.current_type is None or self.current_idx is None:
+    def save(self):
+        if not self.is_editting:
             showerror('Error', 'No content selected.', icon=ERROR)
             return
 
         kwargs = {}
-        for property in widgets:
+        for property in self.current_widgets:
             value = getattr(self.current_type, property.field_name)
             content_value = value.read(property.widgets)
             kwargs[property.field_name] = content_value
@@ -52,21 +58,25 @@ class PropertiesFrame(CTkFrame):
         self.current_type = content_type
         self.current_idx = content_idx
 
-        properties = CTkScrollableFrame(self, fg_color='transparent', label_anchor='n',
-                                        label_font=('Andy', 20, 'bold'),
-                                        label_text=content_type.get_name(),
-                                        label_fg_color='transparent')
+        properties = CTkScrollableFrame(
+            self, fg_color='transparent', label_anchor='n', label_font=('Andy', 20, 'bold'),
+            label_text=content_type.get_name(), label_fg_color='transparent',
+            scrollbar_button_color='#095000', scrollbar_button_hover_color='#0B5C00',
+        )
         properties.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
         actions_frame = CTkFrame(properties, fg_color='transparent')
         actions_frame.pack(fill=X, pady=10)
 
-        content_widgets: list[PropertyWidgets] = []
+        cancel_button = CTkButton(
+            actions_frame, text='Cancel', font=('Andy', 30), width=20, height=30,
+            fg_color='#073B00', hover_color='#0B5C00', corner_radius=10, command=self.reset
+        )
+        cancel_button.pack(side=RIGHT, padx=10)
 
         save_button = CTkButton(
             actions_frame, text='Save', font=('Andy', 30), width=20, height=30,
-            fg_color='#073B00', hover_color='#0B5C00',
-            corner_radius=10, command=lambda: self.save(content_widgets)
+            fg_color='#073B00', hover_color='#0B5C00', corner_radius=10, command=self.save
         )
         save_button.pack(side=RIGHT, padx=10)
 
@@ -78,10 +88,10 @@ class PropertiesFrame(CTkFrame):
             label.pack(side=LEFT)
 
             value = getattr(content_type, field.name)
-            content_widgets.append(PropertyWidgets(value.display(properties), field.name))
+            self.current_widgets.append(PropertyWidgets(value.display(properties), field.name))
     
     def load_content_picker(self):
-        if self.current_type is not None and self.current_idx is not None:
+        if self.is_editting:
             showerror('Error', 'You must save the current content before creating a new one.',
                       icon=ERROR)
             return

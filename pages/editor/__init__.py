@@ -1,4 +1,4 @@
-from tkinter.messagebox import showerror, showinfo, INFO, ERROR
+from tkinter.messagebox import showerror, showinfo, INFO, ERROR, askyesno, QUESTION
 from tkinter import TOP, LEFT, RIGHT, X, Y, BOTH
 
 from customtkinter import CTkFrame, CTkButton, CTkLabel
@@ -47,6 +47,16 @@ class Editor(CTkPage):
 
         self.properties_frame = PropertiesFrame(self)
         self.properties_frame.pack(fill=BOTH, expand=True, side=RIGHT)
+
+        root.protocol('WM_DELETE_WINDOW', self.on_close)
+    
+    def ask_save(self):
+        if askyesno('Save?', 'Do you want to save your changes?', icon=QUESTION):
+            self.save()
+
+    def on_close(self):
+        self.ask_save()
+        self.root.destroy()
     
     def create_content(self, content_type: type[ContentType]):
         content = content_type()
@@ -55,6 +65,9 @@ class Editor(CTkPage):
         self.properties_frame.load_content_properties(len(self.project.content) - 1, content)
     
     def save(self):
+        if self.properties_frame.is_editting:
+            self.properties_frame.save()
+        
         self.project.save()
         showinfo('Saved', f'Your mod has been saved to {self.project.file.as_posix()}', icon=INFO)
     
