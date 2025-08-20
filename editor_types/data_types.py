@@ -10,6 +10,8 @@ from customtkinter import (
     CTkFrame, CTkEntry, CTkImage, CTkLabel, CTkButton, CTkCheckBox, CTkToplevel, CTkScrollableFrame
 )
 
+from editor_types.rarities import rarities, rarity_colors
+
 
 class DataType(ABC):
     @abstractmethod
@@ -170,28 +172,6 @@ class Image(DataType):
     def read(self, widget):
         path = widget.path
         return Image(path)
-
-rarity_colors = {
-    'Gray': '#606060',
-    'White': '#FFFFFF',
-    'Blue': '#0000FF',
-    'Green': '#00FF00',
-    'Orange': '#FFA500',
-    'Light Red': '#FF0000',
-    'Pink': '#FF00FF',
-    'Light Purple': '#FF00FF',
-    'Lime': '#00FF00',
-    'Yellow': '#FFFF00',
-    'Cyan': '#00FFFF',
-    'Red': '#FF0000',
-    'Purple': '#800080',
-    'Quest': '#FFaa00'
-}
-
-rarities = [
-    'Gray', 'White', 'Blue', 'Green', 'Orange', 'Light Red', 'Pink', 'Light Purple', 'Lime', 'Yellow',
-    'Cyan', 'Red', 'Purple', 'Expert', 'Master', 'Quest'
-]
 
 @dataclass
 class Rarity(DataType):
