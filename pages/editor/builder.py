@@ -28,7 +28,7 @@ class Localization:
     @property
     def code(self):
         return f"""{self.name}: {{
-    {', '.join(f'    {key}: {value}' for key, value in self.keys.items())}
+    {'\n'.join(f'    {key}: {value}' for key, value in self.keys.items())}
 }}
 """
 
