@@ -9,14 +9,15 @@ from project import Project
 @dataclass
 class Method:
     name: str
-    params: list[str]
+    params: list[tuple[str, str]] # (type, name)
     return_type: str
     body_code: str
 
     @property
     def code(self):
-        return f"""public override {self.return_type} {self.name}({', '.join(self.params)}) {{
-    {self.body_code}
+        params_str = ', '.join(f'{param[0]} {param[1]}' for param in self.params)
+        return f"""public override {self.return_type} {self.name}({params_str}) {{
+{self.body_code}
 }}
 """
 
@@ -43,9 +44,11 @@ class BuildContext:
 
     @property
     def class_code(self):
-        return f"""public class {self.class_name} : {', '.join(self.class_bases)}
+        class_bases_str = ', '.join(self.class_bases)
+        class_methods_str = '\n'.join(method.code for method in self.class_methods)
+        return f"""public class {self.class_name} : {class_bases_str}
 {{
-    {'\n'.join(method.code for method in self.class_methods)}
+{class_methods_str}
 }}
 """
     

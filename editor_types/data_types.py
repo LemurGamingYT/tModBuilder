@@ -45,6 +45,7 @@ Used by `Int.display`, `Float.display` and `String.display`."""
         window.title(title)
         window.geometry('400x300')
         picked = ''
+        
         def set_picked(choice: str):
             nonlocal picked
             picked = choice

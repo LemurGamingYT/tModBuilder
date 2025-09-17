@@ -17,7 +17,7 @@ def main():
     else:
         file_path = Path(argv[1])
         if not file_path.exists():
-            showerror('Error', 'File does not exist.', icon=ERROR)
+            showerror('Error', f'File does not exist {file_path}.', icon=ERROR)
             return
         elif not file_path.suffix == '.tmb':
             showerror('Error', 'File is not a valid tModBuilder project file (.tmb).', icon=ERROR)

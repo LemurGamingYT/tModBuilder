@@ -51,6 +51,15 @@ class PropertiesFrame(CTkFrame):
 
         self.reset()
     
+    def delete(self):
+        if not self.is_editting:
+            showerror('Error', 'No content selected.', icon=ERROR)
+            return
+
+        self.page.project.content.pop(self.current_idx)
+        self.page.content_bar.load_content()
+        self.reset()
+    
     def load_content_properties(self, content_idx: int, content_type: ContentType):
         for child in self.winfo_children():
             child.destroy()
@@ -79,6 +88,12 @@ class PropertiesFrame(CTkFrame):
             fg_color='#073B00', hover_color='#0B5C00', corner_radius=10, command=self.save
         )
         save_button.pack(side=RIGHT, padx=10)
+
+        delete_button = CTkButton(
+            actions_frame, text='Delete', font=('Andy', 30), width=20, height=30,
+            fg_color='#073B00', hover_color='#0B5C00', corner_radius=10, command=self.delete
+        )
+        delete_button.pack(side=RIGHT, padx=10)
 
         for field in fields(content_type):
             field_frame = CTkFrame(properties, fg_color='transparent')

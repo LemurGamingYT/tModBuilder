@@ -107,4 +107,4 @@ Item.SetWeaponValues({self.damage}, {self.knockback}, {self.crit_chance});
 """
 
 
-CONTENT_TYPES = [Sword, Material]
+CONTENT_TYPES = [Item, Sword, Material]

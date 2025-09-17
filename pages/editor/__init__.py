@@ -76,8 +76,7 @@ class Editor(CTkPage):
         if not success:
             showerror('Error', 'Your mod could not be built.', icon=ERROR)
         else:
-            build_dir = self.project.path / 'build'
             showinfo(
-                'Built', f'Your mod has been built to {build_dir.as_posix()}',
+                'Built', 'Your mod has been built now you can open TModloader and test your mod!',
                 icon=INFO
             )
