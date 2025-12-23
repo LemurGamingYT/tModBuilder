@@ -241,8 +241,37 @@ class CoinValue(DataType):
         copper = self.display_entry(parent, self.copper, 'Copper:')
         return [platinum, gold, silver, copper]
     
-    def read(self, widget):
-        platinum, gold, silver, copper = widget
+    def read(self, widgets):
+        platinum, gold, silver, copper = widgets
         return CoinValue(platinum.get(), gold.get(), silver.get(), copper.get())
 
-DATA_TYPES = [Int, Float, String, Bool, Image, Rarity, CoinValue]
+damage_classes = [
+    'Generic', 'Melee', 'Ranged', 'Magic', 'Summon'
+]
+
+@dataclass
+class DamageBoost(DataType):
+    damage_class: str = 'Generic'
+    value: float = 0.0
+
+    def __str__(self):
+        return f'DamageClass.{self.damage_class}'
+    
+    def display(self, parent):
+        def window():
+            choice = self.picker_window(btn, 'Classes', damage_classes)
+            if choice != '':
+                self.damage_class = choice
+
+        btn = CTkButton(parent, font=('Andy', 20), corner_radius=10, command=window)
+        btn.pack(fill=X, padx=5)
+
+        value = self.display_entry(parent, self.value, 'Damage Boost Value')
+        return [btn, value]
+    
+    def read(self, widgets):
+        btn, value = widgets
+        return DamageBoost(btn.cget('text'), float(value.get()))
+
+
+DATA_TYPES = [Int, Float, String, Bool, Image, Rarity, CoinValue, DamageBoost]

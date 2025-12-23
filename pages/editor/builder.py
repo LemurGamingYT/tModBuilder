@@ -22,6 +22,38 @@ class Method:
 """
 
 @dataclass
+class PropertyFlags:
+    override: bool = False
+    static: bool = False
+    readonly: bool = False
+    
+    def __str__(self) -> str:
+        code = ''
+        if self.override:
+            code += 'override '
+        
+        if self.static:
+            code += 'static '
+        
+        if self.readonly:
+            code += 'readonly '
+        
+        return code
+
+@dataclass
+class Property:
+    name: str
+    type: str
+    value: str
+    is_field: bool = True
+    flags: PropertyFlags = field(default_factory=PropertyFlags)
+    
+    @property
+    def code(self):
+        assign_symbol = '=' if self.is_field else '=>'
+        return f"""public {self.flags} {self.type} {self.name} {assign_symbol} {self.value};"""
+
+@dataclass
 class Localization:
     name: str
     keys: dict[str, str] = field(default_factory=dict)
@@ -39,15 +71,18 @@ class BuildContext:
     build_dir: Path
     project: Project
     class_name: str
-    class_bases: list[str]
-    class_methods: list[Method]
+    class_bases: list[str] = field(default_factory=list)
+    class_properties: list[Property] = field(default_factory=list)
+    class_methods: list[Method] = field(default_factory=list)
 
     @property
     def class_code(self):
         class_bases_str = ', '.join(self.class_bases)
         class_methods_str = '\n'.join(method.code for method in self.class_methods)
+        class_properties_str = '\n'.join(prop.code for prop in self.class_properties)
         return f"""public class {self.class_name} : {class_bases_str}
 {{
+{class_properties_str}
 {class_methods_str}
 }}
 """
@@ -147,7 +182,7 @@ version = {project.config.version}
     content_dir = build_dir / 'Content'
     content_dir.mkdir(exist_ok=True)
     for content in project.content:
-        build_ctx = BuildContext(mod_name, build_dir, project, content.get_internal_name(), [], [])
+        build_ctx = BuildContext(mod_name, build_dir, project, content.get_internal_name())
         content.build(build_ctx)
         localization = content.build_localization(build_ctx)
         en_US.write_text(localization.code)
@@ -156,6 +191,7 @@ version = {project.config.version}
         content_path.write_text(f"""using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.Localization;
 
 namespace {mod_name}.Content
 {{
@@ -167,7 +203,10 @@ namespace {mod_name}.Content
     if not tmod_targets.exists():
         return False
 
-    run(f'dotnet msbuild {csproj.as_posix()} -restore')
+    res = run(f'dotnet msbuild {csproj.as_posix()} -restore')
+    if res.returncode != 0:
+        return False
+    
     res = run(f'dotnet msbuild {csproj.as_posix()} -t:build')
     if res.returncode != 0:
         return False
